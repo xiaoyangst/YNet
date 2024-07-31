@@ -17,9 +17,7 @@ int main(int argc, char *argv[]) {
 
   std::string server_ip = argv[1];
   int server_port = std::stoi(argv[2]);
-  std::string message;
-  std::cout<<"input message : ";
-  std::cin>>message;
+  std::string message = "sssbbb";
 
   int sock_fd = socket(AF_INET, SOCK_STREAM, 0);
   if (sock_fd < 0) {
@@ -38,14 +36,17 @@ int main(int argc, char *argv[]) {
     perror("connect error");
     return -1;
   }
-
-  ssize_t bytes_sent = send(sock_fd, message.c_str(), message.size(), 0);
-  if (bytes_sent < 0) {
-    perror("send error");
-    return -1;
-  } else {
-    std::cout << "Sent message: " << message << std::endl;
+  for (int i = 0; i < 2; ++i) {
+    ssize_t bytes_sent = send(sock_fd, message.c_str(), message.size(), 0);
+    if (bytes_sent < 0) {
+      perror("send error");
+      return -1;
+    } else {
+      std::cout << "Sent message: " << message << std::endl;
+    }
+    sleep(3);
   }
+
 
   close(sock_fd);
   return 0;
