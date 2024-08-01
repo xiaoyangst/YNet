@@ -22,7 +22,9 @@ class InetAddress {
   std::string ip_;
   uint16_t port_{};
   struct sockaddr_in addr_{};
+
  public:
+  InetAddress();
   InetAddress(const std::string& ip, uint16_t port);     // 监听 fd 所需的，用于服务端
   explicit InetAddress(const struct sockaddr_in& addr);  // 接收 fd 所需的，用于客户端
   ~InetAddress() = default;
@@ -32,6 +34,8 @@ class InetAddress {
   [[nodiscard]] uint16_t port() const;
 
   struct sockaddr* addr();
+
+  void setaddr(sockaddr_in clientaddr);
 };
 }
 }

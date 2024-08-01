@@ -7,13 +7,15 @@
 #include <sys/epoll.h>
 
 #include "InetAddress.h"
+#include "Socket.h"
+#include "Epoll.h"
 using namespace YNet::net;
 
 #define LISTEN_NUM 10
 #define EVENT_NUM 20
 
 void handle_client(int epfd, int client_fd);
-void accept_connection(int epfd, int socket_fd);
+void accept_connection(int epfd, Socket &serverSocket);
 
 int main(int argc, char *argv[]) {
   if (argc != 3) {
@@ -24,86 +26,45 @@ int main(int argc, char *argv[]) {
   std::string ip = argv[1];
   int port = std::stoi(argv[2]);
 
-  int socket_fd = socket(AF_INET, SOCK_STREAM, 0);
-  if (socket_fd < 0) {
-    perror("socket error");
-    return -1;
-  }
+  Socket serverSocket(createNonblocking());
+  serverSocket.setReuseAddr(true);
+  serverSocket.setReusePort(true);
+  serverSocket.setTcpNoDelay(true);
+  serverSocket.setKeepAlive(true);
+  InetAddress inet_address(ip, port);
+  serverSocket.bind(inet_address);
+  serverSocket.listen(LISTEN_NUM);
 
-  InetAddress* inet_address = new InetAddress(ip,port);
+  Epoll epoll;
 
-//  struct sockaddr_in server_addr;
-//  memset(&server_addr, 0, sizeof(server_addr));
-//  server_addr.sin_family = AF_INET;
-//  server_addr.sin_port = htons(port);
-//  server_addr.sin_addr.s_addr = inet_addr(ip.c_str());
+  int socket_fd = serverSocket.fd();
 
-  if (bind(socket_fd, inet_address->addr(), sizeof(*inet_address->addr())) < 0) {
-    perror("bind error");
-    close(socket_fd);
-    return -1;
-  }
+  epoll.addfd(socket_fd, EPOLLIN | EPOLLET);
 
-  if (listen(socket_fd, LISTEN_NUM) < 0) {
-    perror("listen error");
-    close(socket_fd);
-    return -1;
-  }
-
-  int epfd = epoll_create(1);
-  if (epfd < 0) {
-    perror("epoll_create error");
-    close(socket_fd);
-    return -1;
-  }
-
-  struct epoll_event evt;
-  evt.events = EPOLLIN | EPOLLET;
-  evt.data.fd = socket_fd;
-  if (epoll_ctl(epfd, EPOLL_CTL_ADD, socket_fd, &evt) < 0) {
-    perror("epoll_ctl error");
-    close(socket_fd);
-    close(epfd);
-    return -1;
-  }
 
   while (true) {
-    struct epoll_event events[EVENT_NUM];
-    int eventNum = epoll_wait(epfd, events, EVENT_NUM, -1);
-    if (eventNum < 0) {
-      perror("epoll_wait error");
-      close(socket_fd);
-      close(epfd);
-      return -1;
-    }
 
-    for (int i = 0; i < eventNum; ++i) {
-      if (events[i].data.fd == socket_fd) {
-        accept_connection(epfd, socket_fd);
+    std::vector<epoll_event> evs = epoll.loop();
+    for (auto & ev : evs) {
+      if (ev.data.fd == socket_fd) {
+        accept_connection(epoll.epfd(), serverSocket);
       } else {
-        handle_client(epfd, events[i].data.fd);
+        handle_client(epoll.epfd(), ev.data.fd);
       }
     }
   }
 
-  close(socket_fd);
-  close(epfd);
 
   return 0;
 }
 
-void accept_connection(int epfd, int socket_fd) {
+void accept_connection(int epfd, Socket &serverSocket) {
   static int count = 1;
-  struct sockaddr_in client_addr;
-  socklen_t client_len = sizeof(client_addr);
-  InetAddress* c_addr = new InetAddress(client_addr);
-  int client_fd = accept(socket_fd, c_addr->addr(), &client_len);
-  if (client_fd < 0) {
-    perror("accept error");
-    return;
-  }
-  std::cout <<count++<<" --> Client connected: " << c_addr->toIp() << ":" << c_addr->port() << std::endl;
-  std::cout <<count++<<" --> Client connected: " << c_addr->toIpPort() << std::endl;
+  InetAddress c_addr;
+  Socket *clientSocket = new Socket(serverSocket.accept(c_addr));
+  int client_fd = clientSocket->fd();
+  std::cout << count++ << " --> Client connected: " << c_addr.toIp() << ":" << c_addr.port() << std::endl;
+  std::cout << count++ << " --> Client connected: " << c_addr.toIpPort() << std::endl;
   struct epoll_event evt;
   evt.events = EPOLLIN | EPOLLET;
   evt.data.fd = client_fd;

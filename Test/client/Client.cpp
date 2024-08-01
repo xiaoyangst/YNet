@@ -11,7 +11,7 @@
 
 int main(int argc, char *argv[]) {
   if (argc != 3) {
-    std::cout << "Usage: " << argv[0] << " <server_ip> <server_port> <message>" << std::endl;
+    std::cout << "Usage: " << " ./client/Client 139.196.235.91 8080"<< std::endl;
     return -1;
   }
 

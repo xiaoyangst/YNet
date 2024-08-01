@@ -1,5 +1,9 @@
 #include "InetAddress.h"
 
+YNet::net::InetAddress::InetAddress() {
+
+}
+
 YNet::net::InetAddress::InetAddress(const std::string& ip, uint16_t port)
     : ip_(ip), port_(port) {
   addr_.sin_family = AF_INET;
@@ -26,3 +30,8 @@ struct sockaddr* YNet::net::InetAddress::addr() {
 std::string YNet::net::InetAddress::toIpPort() const {
   return toIp() + ":" + std::to_string(port());
 }
+
+void YNet::net::InetAddress::setaddr(sockaddr_in clientaddr) {
+  addr_ = clientaddr;
+}
+
