@@ -11,31 +11,29 @@
 #ifndef YNETPROJECT_YNET_NET_EPOLL_H_
 #define YNETPROJECT_YNET_NET_EPOLL_H_
 
-class Channel;
-class EventLoop;
 #include <vector>
 #include <sys/epoll.h>
 #include <unistd.h>
-#include <stdio.h>
-#include <stdlib.h>
+#include <cstdio>
+#include <cstdlib>
 #include <cstring>
+#include "Channel.h"
 
 namespace YNet{
 namespace net{
+class Channel;
 class Epoll {
  private:
   static const int MaxEventNum = 100;
   int epfd_;
-  struct epoll_event events_[MaxEventNum];
+  struct epoll_event events_[MaxEventNum]{};
  public:
   Epoll();
   ~Epoll();
-  int epfd();
-  std::vector<epoll_event> loop(int timeout = -1);    // 封装 epoll_wait
+  int epfd() const;
+  std::vector<Channel *> loop(int timeout = -1);    // 封装 epoll_wait
   // 封装 epoll_ctl
-  void addfd(int sockfd,int op);
-  void delfd(int sockfd);
-  void updatefd(int sockfd);
+  void updateChannel(Channel *channel) const;
 
 };
 }

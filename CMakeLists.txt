@@ -11,3 +11,5 @@ add_subdirectory(YNet)
 
 add_executable(YNetProject main.cpp)
 
+target_link_libraries(YNetProject pthread)
+

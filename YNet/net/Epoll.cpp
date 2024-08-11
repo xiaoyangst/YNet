@@ -1,6 +1,9 @@
 #include "Epoll.h"
 
-YNet::net::Epoll::Epoll()
+
+namespace YNet{
+namespace net{
+Epoll::Epoll()
 {
   epfd_ = epoll_create1(EPOLL_CLOEXEC);
   if (epfd_ < 0) {
@@ -9,33 +12,31 @@ YNet::net::Epoll::Epoll()
   }
 }
 
-YNet::net::Epoll::~Epoll() {
+Epoll::~Epoll() {
   close(epfd_);
 }
 
-void YNet::net::Epoll::addfd(int sockfd,int op) {
-  struct epoll_event evt;
-  evt.events = op;
-  evt.data.fd = sockfd;
-  if (epoll_ctl(epfd_, EPOLL_CTL_ADD, sockfd, &evt) < 0) {
-    perror("epoll_ctl EPOLL_CTL_ADD error");
-    exit(-1);
+void Epoll::updateChannel(Channel *channel) const {
+  struct epoll_event evt{};
+  evt.events = channel->events();
+  evt.data.ptr = channel;
+  if (!channel->inepoll()) {
+    if (epoll_ctl(epfd_, EPOLL_CTL_ADD, channel->fd(), &evt) < 0) {
+      perror("epoll_ctl EPOLL_CTL_ADD error");
+      exit(-1);
+    }
+    channel->setInEpoll(); // channel 已添加到树上
+  }else{
+    if (epoll_ctl(epfd_, EPOLL_CTL_MOD, channel->fd(), &evt) < 0) {
+      perror("epoll_ctl EPOLL_CTL_MOD error");
+      exit(-1);
+    }
   }
 }
 
-void YNet::net::Epoll::delfd(int sockfd) {
-  if(epoll_ctl(epfd_, EPOLL_CTL_DEL, sockfd, nullptr) < 0){
-    perror("epoll_ctl EPOLL_CTL_DEL error");
-    exit(-1);
-  }
-}
 
-void YNet::net::Epoll::updatefd(int sockfd) {
-
-}
-
-std::vector<epoll_event> YNet::net::Epoll::loop(int timeout) {
-  std::vector<epoll_event> evs;
+std::vector<Channel *> Epoll::loop(int timeout) {
+  std::vector<Channel*> Channels;
   memset(events_,0, sizeof(events_));
   int eventNum = epoll_wait(epfd_, events_, MaxEventNum, timeout);
   if (eventNum < 0) {
@@ -44,15 +45,21 @@ std::vector<epoll_event> YNet::net::Epoll::loop(int timeout) {
   }
   if (eventNum == 0){
     perror("epoll_wait timeout");
-    exit(-1);
+    return Channels;
   }
 
   for (int i = 0; i < eventNum; ++i) {
-    evs.push_back(events_[i]);
+    auto ch = (Channel*)events_[i].data.ptr;
+    ch->setRevents(events_[i].events);    // 设置 发生的事件
+    Channels.push_back(ch);
   }
 
-  return evs;
+  return Channels;
 }
-int YNet::net::Epoll::epfd() {
+int Epoll::epfd() const {
   return epfd_;
 }
+
+}
+}
+

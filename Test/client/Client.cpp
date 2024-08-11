@@ -11,7 +11,7 @@
 
 int main(int argc, char *argv[]) {
   if (argc != 3) {
-    std::cout << "Usage: " << " ./client/Client 139.196.235.91 8080"<< std::endl;
+    std::cout << "Usage: " << " ./Test/client/Client 139.196.235.91 8080"<< std::endl;
     return -1;
   }
 
@@ -36,7 +36,7 @@ int main(int argc, char *argv[]) {
     perror("connect error");
     return -1;
   }
-  for (int i = 0; i < 2; ++i) {
+  for (int i = 0; i < 10; ++i) {
     ssize_t bytes_sent = send(sock_fd, message.c_str(), message.size(), 0);
     if (bytes_sent < 0) {
       perror("send error");
@@ -44,9 +44,7 @@ int main(int argc, char *argv[]) {
     } else {
       std::cout << "Sent message: " << message << std::endl;
     }
-    sleep(3);
   }
-
 
   close(sock_fd);
   return 0;
