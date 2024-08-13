@@ -10,9 +10,13 @@ EventLoop::~EventLoop() {
 }
 void EventLoop::run() {   // 循环处理 事件
   while (true) {
-    std::vector<Channel*> Channels = ep_->loop();
-    for (auto & ch : Channels) {
+    std::vector<Channel*> Channels = ep_->loop(10*1000);
+    if (Channels.size() == 0){
+      epollTimeoutCallback_(this);
+    } else{
+      for (auto & ch : Channels) {
         ch->handleEvent();
+      }
     }
   }
 }
@@ -21,6 +25,9 @@ Epoll *EventLoop::ep() {
 }
 void EventLoop::updateChannel(Channel *ch) {
   ep_->updateChannel(ch);
+}
+void EventLoop::setepollTimeoutCallback(std::function<void(EventLoop *)> fn) {
+  epollTimeoutCallback_ = fn;
 }
 }
 }

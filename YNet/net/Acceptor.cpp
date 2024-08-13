@@ -29,11 +29,10 @@ Acceptor::~Acceptor() {
 }
 
 void Acceptor::newConnection() {
-  static int count = 1;
   InetAddress c_addr;
   Socket *clientSocket = new Socket(serverSocket_->accept(c_addr));
-  std::cout << count++ << " --> Client connected: " << c_addr.toIpPort() << std::endl;
-
+  clientSocket->setip(c_addr.toIp());
+  clientSocket->setport(c_addr.port());
   connCB_(clientSocket);
 }
 void Acceptor::setnewConnectionCB(std::function<void(Socket *)> connCB) {

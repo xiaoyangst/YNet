@@ -20,11 +20,19 @@ class TcpServer {
  private:
   EventLoop* loop_;
   Acceptor* acceptor_;
+  std::map<int,Connection*> connMap_;
  public:
   TcpServer(const std::string& ip,int port);
   ~TcpServer();
   void start();
   void newConnection(Socket* clientSocket);
+  void closeConnection(Connection* conn);
+  void errorConnection(Connection* conn);
+  void onMessage(Connection* conn,std::string message);
+  void sendComplete(Connection *conn);
+  void epollTimeout(EventLoop *loop);
+
+
 };
 }
 }

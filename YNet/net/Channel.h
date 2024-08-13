@@ -31,6 +31,9 @@ class Channel {
   uint32_t revents_ = 0;  // 已发生的事件
   EventLoop *loop_=nullptr;
   std::function<void()> readCallback_;
+  std::function<void()> closeCallback_;
+  std::function<void()> errorCallback_;
+  std::function<void()> writeCallback_;
  public:
   Channel(EventLoop *loop,int fd);
   ~Channel();
@@ -39,13 +42,19 @@ class Channel {
   [[nodiscard]] bool inepoll() const;
   void setET(); // 设置边缘触发
   void enableReading();
+  void disableReading();
+  void enableWriting();
+  void disableWriting();
+
   void setInEpoll();
   void setRevents(uint32_t  ev);
   void setReadCallback_(std::function<void()> fn);
+  void setcloseCallback_(std::function<void()> fn);
+  void seterrorCallback_(std::function<void()> fn);
+  void setwriteCallback_(std::function<void()> fn);
   [[nodiscard]] uint32_t events() const;
   [[nodiscard]] uint32_t revents() const;
   void handleEvent();
-  void onMessage();
 };
 }
 }

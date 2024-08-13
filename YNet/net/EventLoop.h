@@ -20,11 +20,13 @@ namespace net {
 class EventLoop {
  private:
   Epoll* ep_;
+  std::function<void(EventLoop*)> epollTimeoutCallback_;
  public:
   EventLoop();
   ~EventLoop();
   void run();
   void updateChannel(Channel* ch);
+  void setepollTimeoutCallback(std::function<void(EventLoop*)> fn);
   Epoll* ep();
 };
 }

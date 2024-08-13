@@ -23,6 +23,8 @@ namespace net{
 class Socket {
  private:
   const int sockfd_;
+  std::string ip_;
+  uint16_t port_;
  public:
   explicit Socket(int sockfd);
   ~Socket();
@@ -35,6 +37,12 @@ class Socket {
   void setReuseAddr(bool on);
   void setReusePort(bool on);
   void setKeepAlive(bool on);
+
+  void setip(const std::string& ip);
+  void setport(uint16_t port);
+
+  std::string ip();
+  uint16_t port() const;
 };
 }
 }

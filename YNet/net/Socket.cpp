@@ -1,3 +1,4 @@
+#include <iostream>
 #include "Socket.h"
 
 int createNonblocking(){
@@ -23,7 +24,7 @@ int Socket::fd() {
   return sockfd_;
 }
 
-void Socket::bind(YNet::net::InetAddress &address) {
+void Socket::bind(InetAddress &address) {
   if (::bind(sockfd_, address.addr(), sizeof(*address.addr())) < 0) {
     perror("bind error");
     exit(-1);
@@ -37,7 +38,7 @@ void Socket::listen(int num) {
   }
 }
 
-int Socket::accept(YNet::net::InetAddress &clientaddr) {
+int Socket::accept(InetAddress &clientaddr) {
   struct sockaddr_in client_addr;
   socklen_t client_len = sizeof(client_addr);
   int client_fd = ::accept4(sockfd_, (struct sockaddr *)&client_addr, &client_len,SOCK_NONBLOCK);
@@ -75,6 +76,19 @@ void Socket::setReusePort(bool on) {
     perror("SO_REUSEPORT failed.");
   }
 }
+uint16_t Socket::port() const {
+  return port_;
+}
+std::string Socket::ip() {
+  return ip_;
+}
+void Socket::setip(const std::string &ip) {
+  ip_ = ip;
+}
+void Socket::setport(uint16_t port) {
+  port_ = port;
+}
+
 }
 }
 

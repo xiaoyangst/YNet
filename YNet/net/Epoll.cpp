@@ -44,7 +44,6 @@ std::vector<Channel *> Epoll::loop(int timeout) {
     exit(-1);
   }
   if (eventNum == 0){
-    perror("epoll_wait timeout");
     return Channels;
   }
 
