@@ -29,7 +29,7 @@ class Connection {
   Buffer outputBuffer_;
   std::function<void(Connection *)> closeCallback_;
   std::function<void(Connection *)> errorCallback_;
-  std::function<void(Connection *,std::string)> onMessageCallback_;
+  std::function<void(Connection *,std::string&)> onMessageCallback_;
   std::function<void(Connection *)> sendCompleteCallback_;
   std::function<void(EventLoop *loop)> epollTimeoutCallback_;
  public:
@@ -42,7 +42,7 @@ class Connection {
 
   void setcloseCallback_(std::function<void(Connection *)> fn);
   void seterrorCallback_(std::function<void(Connection *)> fn);
-  void setonMessageCallback_(std::function<void(Connection *,std::string)> fn);
+  void setonMessageCallback_(std::function<void(Connection *,std::string&)> fn);
   void setepollTimeoutCallback_(std::function<void(EventLoop *loop)> fn);
   void setsendCompleteCallback_(std::function<void(Connection *)> fn);
 
@@ -50,7 +50,7 @@ class Connection {
   void errorCB();
   void onMessage();
   void writeCB();
-  void send(std::string data,size_t size);
+  void send(std::string& data,size_t size);
 };
 }
 }

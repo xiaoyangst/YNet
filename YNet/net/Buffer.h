@@ -26,7 +26,9 @@ class Buffer {
   void clear();
   const char* data(); // 返回 buf_ 的首地址
   void append(const char* data,size_t size);
+  void appendHead(const char *data,size_t size);
   void erase(size_t pos,size_t len);
+  
 };
 }
 }

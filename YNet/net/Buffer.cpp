@@ -23,5 +23,9 @@ const char *Buffer::data() {
 void Buffer::erase(size_t pos, size_t len) {
   buf_.erase(pos,len);
 }
+void Buffer::appendHead(const char *data, size_t size) {
+  buf_.append((char*)&size,4);
+  buf_.append(data,size);
+}
 }
 }

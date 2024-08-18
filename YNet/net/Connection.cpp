@@ -38,7 +38,7 @@ void Connection::setcloseCallback_(std::function<void(Connection *)> fn) {
 void Connection::seterrorCallback_(std::function<void(Connection *)> fn) {
   errorCallback_ = fn;
 }
-void Connection::setonMessageCallback_(std::function<void(Connection *,std::string)> fn) {
+void Connection::setonMessageCallback_(std::function<void(Connection *,std::string&)> fn) {
   onMessageCallback_ = fn;
 }
 
@@ -73,8 +73,8 @@ void Connection::onMessage() {
   }
 }
 
-void Connection::send(std::string data, size_t size) {
-  outputBuffer_.append(data.c_str(),size);
+void Connection::send(std::string& data, size_t size) {
+  outputBuffer_.appendHead(data.c_str(),size);  // 发出去的数据，会自动封装成 头部+数据 格式
   clientChannel_->enableWriting();  // 注册写事件
 }
 

@@ -12,7 +12,7 @@ set(NET_SRC
         ../../YNet/net/ThreadPool.cpp
         ../../YNet/net/Buffer.cpp
 )
-
-add_executable(Server Server.cpp ${NET_SRC})
+include_directories(.)
+add_executable(Server Server.cpp EchoServer.cpp ${NET_SRC})
 target_link_libraries(Server pthread)
 

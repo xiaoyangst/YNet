@@ -43,7 +43,7 @@ using namespace YNet::net;
 //  return 0;
 //}
 
-
+#include "EchoServer.h"
 
 
 int main(int argc, char *argv[]) {
@@ -55,8 +55,8 @@ int main(int argc, char *argv[]) {
   std::string ip = argv[1];
   int port = std::stoi(argv[2]);
 
-  TcpServer tcp_server(ip,port);
-  tcp_server.start();
+  EchoServer echo_server(ip,port);
+  echo_server.start();
 
   return 0;
 }

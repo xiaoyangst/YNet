@@ -1,5 +1,7 @@
 #include "TcpServer.h"
 
+#include <utility>
+
 #define LISTEN_NUM 10
 
 namespace YNet {
@@ -19,31 +21,51 @@ void TcpServer::start() {
 }
 void TcpServer::newConnection(Socket *clientSocket) {
   Connection* conn = new Connection(loop_,clientSocket);
-  std::cout << "Client connected: " << conn->ip() << ":"<<conn->port()<< std::endl;
-  connMap_[conn->fd()] = conn;
   conn->setcloseCallback_(std::bind(&TcpServer::closeConnection, this,std::placeholders::_1));
   conn->seterrorCallback_(std::bind(&TcpServer::errorConnection, this,std::placeholders::_1));
   conn->setonMessageCallback_(std::bind(&TcpServer::onMessage, this,std::placeholders::_1,std::placeholders::_2));
   conn->setsendCompleteCallback_(std::bind(&TcpServer::sendComplete, this,std::placeholders::_1));
+
+  std::cout << "Client connected: " << conn->ip() << ":"<<conn->port()<< std::endl;
+  connMap_[conn->fd()] = conn;
+
+  newConnectionCB_(conn);
 }
 void TcpServer::closeConnection(Connection *conn) {
-  std::cout<<conn->ip()<<":"<<conn->port()<<"--->"<<"disconnected"<<std::endl;
+  if (closeConnectionCB_) closeConnectionCB_(conn);
   connMap_.erase(conn->fd());
 }
 void TcpServer::errorConnection(Connection *conn) {
-  std::cout<<conn->ip()<<":"<<conn->port()<<"--->"<<"error"<<std::endl;
+  if (errorConnectionCB_) errorConnectionCB_(conn);
   connMap_.erase(conn->fd());
 }
 
-void TcpServer::onMessage(Connection *conn,std::string message) {
-  std::cout<<"recv data = "<<message<<std::endl;
-  conn->send(message, message.size());  // 本质是在做 message 加入到 outputBuffer_ 并注册写事件
+void TcpServer::onMessage(Connection *conn,std::string &message) {
+  if (onMessageCB_) onMessageCB_(conn,message);
 }
 void TcpServer::sendComplete(Connection *conn) {
-  std::cout<<"send complete"<<std::endl;
+  if (sendCompleteCB_) sendCompleteCB_(conn);
 }
 void TcpServer::epollTimeout(EventLoop *loop) {
-  std::cout<<"epoll Timeout"<<std::endl;
+  if (timeoutCB_) timeoutCB_(loop);
+}
+void TcpServer::setNewConnectionCB(std::function<void(Connection *)> fn) {
+  newConnectionCB_ = std::move(fn);
+}
+void TcpServer::setCloseConnectionCB(std::function<void(Connection *)> fn) {
+  closeConnectionCB_ = std::move(fn);
+}
+void TcpServer::setErrorConnectionCB(std::function<void(Connection *)> fn) {
+  errorConnectionCB_ = std::move(fn);
+}
+void TcpServer::setOnMessageCB(std::function<void(Connection *, std::string &)> fn) {
+  onMessageCB_ = std::move(fn);
+}
+void TcpServer::setSendCompleteCB(std::function<void(Connection *)> fn) {
+  sendCompleteCB_ = std::move(fn);
+}
+void TcpServer::setEpollTimeoutCB(std::function<void(EventLoop *)> fn) {
+  timeoutCB_ = std::move(fn);
 }
 }
 }

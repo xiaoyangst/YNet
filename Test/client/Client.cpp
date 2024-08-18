@@ -44,6 +44,7 @@ int main(int argc, char *argv[]) {
     std::string message = "sssbbb";
     int len = message.size();
     char outbuf[1024];
+    char inputbuf[1024];
     memset(outbuf,0, sizeof(outbuf));
     memcpy(outbuf,&len,4);
     memcpy(outbuf + 4,message.c_str(),len);
@@ -55,19 +56,36 @@ int main(int argc, char *argv[]) {
       std::cout << "Sent message: " << message << std::endl;
     }
     sleep(1);
-  }
-
-  char inputbuf[1024];
-  for (int i = 0; i < 10; ++i) {
     bzero(inputbuf,sizeof(inputbuf));
     ssize_t bytes_recv = recv(sock_fd,inputbuf,sizeof(inputbuf),0);
-    if (bytes_recv < 0) {
+    if (bytes_recv < 0){
       perror("recv error");
       return -1;
-    } else {
-      std::cout << "Recv message: " << std::string(inputbuf) << std::endl;
+    }else{
+      int recvlen;
+      memcpy(&recvlen, inputbuf, 4);
+      std::string data(inputbuf + 4, len);
+      std::cout << "Recv message: " << data << std::endl;
     }
   }
+
+//  char inputbuf[1024];
+//  for (int i = 0; i < 10; ++i) {
+//    bzero(inputbuf,sizeof(inputbuf));
+//    ssize_t bytes_recv = recv(sock_fd,inputbuf,sizeof(inputbuf),0);
+//    if (bytes_recv < 0) {
+//      perror("recv error");
+//      return -1;
+//    } else {
+//      int len;
+//      memcpy(&len, inputBuffer_.data(), 4);
+//      if (inputBuffer_.size() < len + 4) {   // 说明数据不完整，下次处理
+//        break;
+//      }
+//      std::string data(inputBuffer_.data() + 4, len);  // 获取有效数据
+//      std::cout << "Recv message: " << std::string(inputbuf) << std::endl;
+//    }
+//  }
 
   close(sock_fd);
   return 0;
